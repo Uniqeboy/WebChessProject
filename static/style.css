@@ -7,15 +7,16 @@ body {
 
 #board {
     display: grid;
-    grid-template-columns: repeat(8, 80px);
-    grid-template-rows: repeat(8, 80px); /* ✅ THIS FIXES RECTANGLES */
+    grid-template-columns: repeat(8, 70px);
+    grid-template-rows: repeat(8, 70px); /* ✅ THIS FIXES RECTANGLES */
     border: 3px solid black;
     margin-top: 20px;
+    /* color: #fbe1a4bb; */
 }
 
 .square {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
     font-size: 44px;
     display: flex;
     justify-content: center;
@@ -28,21 +29,10 @@ body {
     user-select: none;
 }
 
-#board .square.white {
-    background-color: #f0d9b5;
-}
-
-#board .square.black {
-    background-color: #b58863;
-}
-
-.selected::after {
-    content: "";
-    position: absolute;
-    inset: 0;              /* ✅ cleaner than top/left/width */
-    border: 4px solid red;
-    box-sizing: border-box;
-    pointer-events: none;
+.square.selected {
+    /* box-shadow: inset 0 0 0 4px #4f7cff; */
+    color:#002afb;
+    background-color: darkseagreen;
 }
 
 .selected::after {
@@ -52,7 +42,13 @@ body {
 .legal::after {
     content: "";
     position: absolute;
-    inset: 0;
-    background-color: rgba(0, 255, 0, 0.25);
+
+    /* keeps green inside square */
+    inset: 2px;
+
+    background-color:  rgba(80, 200, 120, 0.45); 
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
     pointer-events: none;
+    z-index: 1;
 }

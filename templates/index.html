@@ -50,7 +50,7 @@ async function handleClick(r, c) {
         ) {
             return;
         }
-
+        
         selected = { r, c };
 
         const movesRes = await fetch("/legal-moves", {
@@ -108,16 +108,18 @@ function renderBoard(board) {
             square.className = "square";
 
             square.style.backgroundColor =
-                (r + c) % 2 === 0 ? "#f0d9b5" : "#b58863";
+                (r + c) % 2 === 0 ? "#fbe1a4bb" : "#b58863";
 
+            // 🔴 selected square
             if (selected && selected.r === r && selected.c === c) {
-                square.style.outline = "4px solid red";
+                square.classList.add("selected");
             }
 
+            // 🟢 legal move square  ← THIS MUST EXIST
             if (legalMoves.some(m => m.r === r && m.c === c)) {
-                square.style.backgroundColor = "#7ddc6f";
-            }
-
+                square.classList.add("legal");
+            }     
+                   
             square.textContent = pieceMap[board[r][c]];
             square.onclick = () => handleClick(r, c);
             boardDiv.appendChild(square);
@@ -133,81 +135,3 @@ loadState();
 
 </body>
 </html>
-
-
-
-
-
-<!-- 
-async function handleClick(r, c) {
-    // always get latest board
-    const boardRes = await fetch("/board");
-    const board = await boardRes.json();
-    const piece = board[r][c];
-
-    // ======================
-    // 1️⃣ SELECT PIECE
-    // ======================
-    if (!selected) {
-        // block empty square or opponent piece
-        if (
-            piece === "." ||
-            (turn === "white" && piece === piece.toLowerCase()) ||
-            (turn === "black" && piece === piece.toUpperCase())
-        ) {
-            return;
-        }
-
-        selected = { r, c };
-
-        // 👉 send RAW UI coordinates
-        const res = await fetch("/legal-moves", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ r, c })
-        });
-
-        // backend already returns UI coordinates
-        legalMoves = await res.json();
-
-        loadBoard(); // redraw with highlights
-        return;
-    }
-
-    // ======================
-    // 2️⃣ CLICK AFTER SELECTION
-    // ======================
-    const from = { ...selected };
-    const isLegal = legalMoves.some(m => m.r === r && m.c === c);
-
-    // clear highlights immediately
-    selected = null;
-    legalMoves = [];
-    loadBoard();
-
-    if (!isLegal) return;
-
-    // ======================
-    // 3️⃣ MAKE MOVE
-    // ======================
-    const res = await fetch("/move", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            r1: from.r,
-            c1: from.c,
-            r2: r,
-            c2: c
-        })
-    });
-
-    if (res.ok) {
-        const result = await res.json();
-        turn = result.next_turn;
-        renderBoard(result.board);
-    } else {
-        alert("Illegal move");
-        loadBoard();
-    }
-}
--->
