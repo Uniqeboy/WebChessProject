@@ -71,3 +71,74 @@ body {
 #reset-btn:hover {
     opacity: 0.9;
 }
+
+#container {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+
+    align-items: flex-start;   /* ✅ THIS FIXES ALIGNMENT */
+}
+
+#history-panel {
+    width: 220px;
+    max-height: 520px;
+    padding: 14px;
+
+    /* colorful but calm */
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+
+    overflow-y: auto;
+}
+
+/* Title */
+#history-panel h3 {
+    margin: 0 0 12px 0;
+    text-align: center;
+    font-size: 18px;
+    letter-spacing: 1px;
+    color: #ffd54f;
+}
+
+/* Ordered list */
+#move-list {
+    padding-left: 18px;
+    margin: 0;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+/* Each move */
+#move-list li {
+    margin-bottom: 6px;
+    padding: 4px 6px;
+    border-radius: 6px;
+
+    background: rgba(255, 255, 255, 0.12);
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+/* Hover effect */
+#move-list li:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateX(2px);
+}
+
+/* Scrollbar (optional polish) */
+#history-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+#history-panel::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+}
+
+#move-list li:last-child {
+    background: rgba(255, 255, 255, 0.35);
+    font-weight: bold;
+}

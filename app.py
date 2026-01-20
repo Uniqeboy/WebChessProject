@@ -6,7 +6,7 @@ app = Flask(__name__)
 # single source of truth for game state
 game = create_game()
 game["turn"] = "white"
-
+game["history"] = [] 
 
 @app.route("/")
 def home():
@@ -41,6 +41,13 @@ def make_move_api():
     # apply move
     make_move(game, r1, c1, r2, c2)
 
+    # 🔐 SAFETY: ensure history always exists
+    if "history" not in game:
+        game["history"] = []
+
+    move_notation = f"{chr(c1 + 97)}{8 - r1} → {chr(c2 + 97)}{8 - r2}"
+    game["history"].append(move_notation)
+
     # 🔥 switch turn ONLY here
     game["turn"] = "black" if game["turn"] == "white" else "white"
 
@@ -49,7 +56,8 @@ def make_move_api():
     return jsonify({
         "board": game["board"],
         "turn": game["turn"],
-        "status": status
+        "status": status,
+        "history": game["history"]
     })
 
 
@@ -82,11 +90,13 @@ def reset_game():
     global game
     game = create_game()
     game["turn"] = "white"
+    game["history"] = []   # ✅ ADD THIS
 
     return jsonify({
         "board": game["board"],
         "turn": game["turn"],
-        "status": "ok"
+        "status": "ok",
+        "history": game["history"]
     })
 
 if __name__ == "__main__":

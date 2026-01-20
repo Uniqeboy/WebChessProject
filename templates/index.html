@@ -8,8 +8,18 @@
 
 <h2>Chess Game</h2>
 <button id="reset-btn">Reset Game</button>
-<div id="board"></div>
+
+<div id="container">
+    <div id="board"></div>
+
+    <div id="history-panel">
+        <h3>Move History</h3>
+        <ol id="move-list"></ol>
+    </div>
+</div>
+
 <script>
+    
 let selected = null;     // { r, c }
 let legalMoves = [];
 let turn = null;        // backend controlled
@@ -22,6 +32,21 @@ const pieceMap = {
     ".": ""
 };
 
+function updateHistory(history) {
+    const list = document.getElementById("move-list");
+    const panel = document.getElementById("history-panel");
+
+    list.innerHTML = "";
+
+    history.forEach(move => {
+        const li = document.createElement("li");
+        li.textContent = move;
+        list.appendChild(li);
+    });
+
+    panel.scrollTop = panel.scrollHeight;
+}
+
 document.getElementById("reset-btn").onclick = async () => {
     const res = await fetch("/reset", { method: "POST" });
     const data = await res.json();
@@ -33,6 +58,7 @@ document.getElementById("reset-btn").onclick = async () => {
     turn = data.turn;
 
     renderBoard(data.board);
+    updateHistory([]);
 };
 
 async function loadState() {
@@ -102,6 +128,8 @@ async function handleClick(r, c) {
         turn = moveData.turn;
         checkStatus = moveData.status;
         renderBoard(moveData.board);
+
+        updateHistory(moveData.history);
 
         if (checkStatus === "checkmate") {
             gameOver = true;
