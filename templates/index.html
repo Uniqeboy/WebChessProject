@@ -8,53 +8,41 @@
 
 <h2>Chess Game</h2>
 <div id="board"></div>
-
 <script>
-let selected = null; // { r, c }
-// let turn = "white";
-let turn = null ;
+let selected = null;     // { r, c }
 let legalMoves = [];
-    
+let turn = null;        // backend controlled
+
 const pieceMap = {
-    "P": "♙",
-    "R": "♖",
-    "N": "♘",
-    "B": "♗",
-    "Q": "♕",
-    "K": "♔",
-    "p": "♟",
-    "r": "♜",
-    "n": "♞",
-    "b": "♝",
-    "q": "♛",
-    "k": "♚",
+    "P": "♙", "R": "♖", "N": "♘", "B": "♗", "Q": "♕", "K": "♔",
+    "p": "♟", "r": "♜", "n": "♞", "b": "♝", "q": "♛", "k": "♚",
     ".": ""
 };
 
+/* =========================
+   LOAD GAME STATE
+   ========================= */
 async function loadState() {
-    const res = await fetch("/state");
-    const data = await res.json();
-
-    turn = data.turn;          // 🔥 backend truth
-    renderBoard(data.board);
+    const stateRes = await fetch("/state");
+    const stateData = await stateRes.json();
+    turn = stateData.turn;
+    renderBoard(stateData.board);
 }
 
-
-
+/* =========================
+   HANDLE CLICK
+   ========================= */
 async function handleClick(r, c) {
-    // always get latest board
-  const res = await fetch("/state");
-const data = await res.json();
-const board = data.board;
-turn = data.turn;   // keep frontend in sync
+    // always sync with backend
+    const stateRes = await fetch("/state");
+    const stateData = await stateRes.json();
+    const board = stateData.board;
+    turn = stateData.turn;
 
     const piece = board[r][c];
 
-    // ======================
-    // 1️⃣ SELECT PIECE
-    // ======================
+    /* ---- SELECT PIECE ---- */
     if (!selected) {
-        // block empty square or opponent piece
         if (
             piece === "." ||
             (turn === "white" && piece === piece.toLowerCase()) ||
@@ -65,37 +53,29 @@ turn = data.turn;   // keep frontend in sync
 
         selected = { r, c };
 
-        // 👉 send RAW UI coordinates
-        const res = await fetch("/legal-moves", {
+        const movesRes = await fetch("/legal-moves", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ r, c })
         });
 
-        // backend already returns UI coordinates
-        legalMoves = await res.json();
-
-        loadState(); // redraw with highlights
+        legalMoves = await movesRes.json();
+        renderBoard(board);
         return;
     }
 
-    // ======================
-    // 2️⃣ CLICK AFTER SELECTION
-    // ======================
+    /* ---- TRY MOVE ---- */
     const from = { ...selected };
     const isLegal = legalMoves.some(m => m.r === r && m.c === c);
 
-    // clear highlights immediately
+    // clear selection
     selected = null;
     legalMoves = [];
-    loadBoard();
+    renderBoard(board);
 
     if (!isLegal) return;
 
-    // ======================
-    // 3️⃣ MAKE MOVE
-    // ======================
-    const res = await fetch("/move", {
+    const moveRes = await fetch("/move", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -103,19 +83,21 @@ turn = data.turn;   // keep frontend in sync
             c1: from.c,
             r2: r,
             c2: c
-        }) 
+        })
     });
 
-    if (res.ok) {
-        const result = await res.json();
-        turn = result.next_turn;
-        renderBoard(result.board);
+    if (moveRes.ok) {
+        const moveData = await moveRes.json();
+        turn = moveData.turn;
+        renderBoard(moveData.board);
     } else {
         alert("Illegal move");
-        loadBoard();
     }
 }
 
+/* =========================
+   RENDER BOARD
+   ========================= */
 function renderBoard(board) {
     const boardDiv = document.getElementById("board");
     boardDiv.innerHTML = "";
@@ -125,35 +107,28 @@ function renderBoard(board) {
             const square = document.createElement("div");
             square.className = "square";
 
-            // ✅ ADD COLOR CLASSES (CRITICAL)
-            if ((r + c) % 2 === 0) {
-                square.classList.add("white");
-            } else {
-                square.classList.add("black");
+            square.style.backgroundColor =
+                (r + c) % 2 === 0 ? "#f0d9b5" : "#b58863";
+
+            if (selected && selected.r === r && selected.c === c) {
+                square.style.outline = "4px solid red";
+            }
+
+            if (legalMoves.some(m => m.r === r && m.c === c)) {
+                square.style.backgroundColor = "#7ddc6f";
             }
 
             square.textContent = pieceMap[board[r][c]];
-
-            // selected square
-            if (selected && selected.r === r && selected.c === c) {
-                square.classList.add("selected");
-            }
-
-            // legal move highlight
-            if (legalMoves.some(m => m.r === r && m.c === c)) {
-                square.classList.add("legal");
-            }
-
             square.onclick = () => handleClick(r, c);
             boardDiv.appendChild(square);
         }
     }
 }
 
-loadBoard();
-
-const boardDiv = document.getElementById("board");
-boardDiv.classList.toggle("black", turn === "black");
+/* =========================
+   START APP
+   ========================= */
+loadState();
 </script>
 
 </body>
