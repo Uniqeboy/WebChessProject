@@ -13,69 +13,62 @@ def home():
     return render_template("index.html")
 
 
-@app.route("/board")
-def get_board():
-    return jsonify(game["board"])
+@app.route("/state")
+def get_state():
+    return jsonify({
+        "board": game["board"],
+        "turn": game["turn"]
+    })
 
 
 @app.route("/move", methods=["POST"])
 def make_move_api():
     print("BEFORE MOVE, backend turn =", game["turn"])
+
     data = request.json
+    r1 = data["r1"]
+    c1 = data["c1"]
+    r2 = data["r2"]
+    c2 = data["c2"]
 
-    ui_r1 = data["r1"]
-    ui_c1 = data["c1"]
-    ui_r2 = data["r2"]
-    ui_c2 = data["c2"]
-
+    # 🔥 BACKEND is the only source of truth
     turn = game["turn"]
 
-    # convert UI → engine coordinates for black
-    r1 = 7 - ui_r1 if turn == "black" else ui_r1
-    c1 = ui_c1
-    r2 = 7 - ui_r2 if turn == "black" else ui_r2
-    c2 = ui_c2
-
-
+    # validate move
     if not is_valid_move(game, r1, c1, r2, c2, turn):
         return jsonify({"error": "illegal move"}), 400
 
-    # make move
+    # apply move
     make_move(game, r1, c1, r2, c2)
 
-    # switch turn (CRITICAL)
+    # 🔥 switch turn ONLY here
     game["turn"] = "black" if game["turn"] == "white" else "white"
 
     status = check_game_status(game, game["turn"])
 
     return jsonify({
         "board": game["board"],
-        "next_turn": game["turn"],
+        "turn": game["turn"],      # ⬅ frontend must use this
         "status": status
     })
 
 
 @app.route("/legal-moves", methods=["POST"])
 def legal_moves_api():
-    print("LEGAL MOVES REQUEST, backend turn =", game["turn"])
     data = request.json
-    ui_r = data["r"]
-    ui_c = data["c"]
-    turn = game["turn"]
+    r = data["r"]
+    c = data["c"]
 
-    # convert UI row to engine row for black
-    r = 7 - ui_r if turn == "black" else ui_r
-    c = ui_c
+    # 🔥 BACKEND is the only source of truth
+    turn = game["turn"]
 
     moves = []
 
     for r2 in range(8):
         for c2 in range(8):
             if is_valid_move(game, r, c, r2, c2, turn):
-                ui_r2 = 7 - r2 if turn == "black" else r2
-                moves.append({"r": ui_r2, "c": c2})
+                moves.append({"r": r2, "c": c2})
 
-    print("LEGAL MOVES for", turn, "from", (ui_r, ui_c), "=>", moves)
     return jsonify(moves)
 
 

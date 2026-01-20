@@ -11,7 +11,8 @@
 
 <script>
 let selected = null; // { r, c }
-let turn = "white";
+// let turn = "white";
+let turn = null ;
 let legalMoves = [];
     
 const pieceMap = {
@@ -30,17 +31,23 @@ const pieceMap = {
     ".": ""
 };
 
-async function loadBoard() {
-    const res = await fetch("/board");
+async function loadState() {
+    const res = await fetch("/state");
     const data = await res.json();
-    renderBoard(data);
+
+    turn = data.turn;          // 🔥 backend truth
+    renderBoard(data.board);
 }
+
 
 
 async function handleClick(r, c) {
     // always get latest board
-    const boardRes = await fetch("/board");
-    const board = await boardRes.json();
+  const res = await fetch("/state");
+const data = await res.json();
+const board = data.board;
+turn = data.turn;   // keep frontend in sync
+
     const piece = board[r][c];
 
     // ======================
@@ -68,7 +75,7 @@ async function handleClick(r, c) {
         // backend already returns UI coordinates
         legalMoves = await res.json();
 
-        loadBoard(); // redraw with highlights
+        loadState(); // redraw with highlights
         return;
     }
 
@@ -96,7 +103,7 @@ async function handleClick(r, c) {
             c1: from.c,
             r2: r,
             c2: c
-        })
+        }) 
     });
 
     if (res.ok) {
