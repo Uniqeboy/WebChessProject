@@ -51,9 +51,6 @@ def make_move_api():
     result = make_move(game, r1, c1, r2, c2)
     is_capture = result["is_capture"]
 
-    print("CAPTURE:", result["is_capture"])
-
-    
     # 🔐 SAFETY: ensure history always exists
     if "history" not in game:
         game["history"] = []

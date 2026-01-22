@@ -7,7 +7,11 @@
 <body>
 
 <h2>Chess Game</h2>
-<button id="reset-btn">New Game</button>
+
+<div id="controls">
+    <button id="reset-btn">New Game</button>
+    <button id="mute-btn">🔊 Sound On</button>
+</div>
 
 <div id="container">
     <div id="board"></div>
@@ -27,6 +31,7 @@ const sounds = {
   stalemate: new Audio("/static/sounds/stalemate.mp3")
 };
 Object.values(sounds).forEach(s => s.preload = "auto");
+let soundEnabled = true;
 
 
 let selected = null;     // { r, c }
@@ -42,10 +47,11 @@ const pieceMap = {
 };
 
 function playSound(type) {
-  if (!type || !sounds[type]) return;
+    if (!soundEnabled) return;
+    if (!type || !sounds[type]) return;
 
-  sounds[type].currentTime = 0;
-  sounds[type].play().catch(err => {
+    sounds[type].currentTime = 0;
+    sounds[type].play().catch(err => {
     console.warn("Sound blocked:", err);
   });
 }
@@ -228,6 +234,20 @@ function getKingPosition(board, color) {
     }
     return null;
 }
+
+const muteBtn = document.getElementById("mute-btn");
+muteBtn.onclick = () => {
+  soundEnabled = !soundEnabled;
+
+  if (!soundEnabled) {
+    Object.values(sounds).forEach(sound => {
+      sound.pause();
+      sound.currentTime = 0;
+    });
+  }
+
+  muteBtn.textContent = soundEnabled ? "🔊 Sound On" : "🔇 Muted";
+};
 
 loadState();
 </script>
